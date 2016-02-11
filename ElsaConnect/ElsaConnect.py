@@ -124,11 +124,8 @@ class Vehicle(dict):
 import os
 #import teslajson
  
-#TESLA_EMAIL = os.environ['mathias.schult@dnvgl.com']
-#TESLA_PASSWORD = os.environ['Herbert1']
- 
 def establish_connection(token=None):
-    c = Connection(email="mathias.schult@dnvgl.com", password="Herbert1", access_token=token)
+    c = Connection(email="mathias.schult@dnvgl.com", password=pwd, access_token=token)
     return c
    
 def get_odometer(c, car):
@@ -154,6 +151,9 @@ def get_amps(c, car):
             d = v.data_request("charge_state")
             amps = int(d["charger_actual_current"])
     return amps
+
+f = open("rainflow.txt")
+pwd = f.readline()
    
 c = establish_connection()
 print ('Range   {0:5d}km'.format(get_range(c, "Elsa")))
@@ -164,12 +164,11 @@ import smtplib
 
 to = 'mathiasschult@yahoo.com'
 yahoo_user = 'mathiasschult@yahoo.com'
-yahoo_pwd = 'Herbert1'
 smtpserver = smtplib.SMTP("smtp.mail.yahoo.com",587)
 smtpserver.ehlo()
 smtpserver.starttls()
 smtpserver.ehlo() # extra characters to permit edit
-smtpserver.login(yahoo_user, yahoo_pwd)
+smtpserver.login(yahoo_user, pwd)
 header = 'To:' + to + '\n' + 'From: ' + yahoo_user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(c, "Elsa"))
 print (header)
 msg = header + '\n Tesla \n\n'
