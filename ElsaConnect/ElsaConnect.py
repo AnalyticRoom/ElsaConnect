@@ -125,10 +125,10 @@ import os
 #import teslajson
  
 #TESLA_EMAIL = os.environ['mathias.schult@dnvgl.com']
-#TESLA_PASSWORD = os.environ['Start#8112']
+#TESLA_PASSWORD = os.environ['Herbert1']
  
 def establish_connection(token=None):
-    c = Connection(email="mathias.schult@dnvgl.com", password="Start#8112", access_token=token)
+    c = Connection(email="mathias.schult@dnvgl.com", password="Herbert1", access_token=token)
     return c
    
 def get_odometer(c, car):
@@ -164,7 +164,7 @@ import smtplib
 
 to = 'mathiasschult@yahoo.com'
 yahoo_user = 'mathiasschult@yahoo.com'
-yahoo_pwd = 'Start#8112'
+yahoo_pwd = 'Herbert1'
 smtpserver = smtplib.SMTP("smtp.mail.yahoo.com",587)
 smtpserver.ehlo()
 smtpserver.starttls()
