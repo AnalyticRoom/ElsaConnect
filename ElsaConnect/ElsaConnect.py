@@ -123,14 +123,13 @@ class Vehicle(dict):
 
 import os
 #import teslajson
- 
-#TESLA_EMAIL = os.environ['mathias.schult@dnvgl.com']
-#TESLA_PASSWORD = os.environ['Herbert1']
- 
+
+
 def establish_connection(token=None):
-    c = Connection(email="mathias.schult@dnvgl.com", password="Herbert1", access_token=token)
+    c = Connection(email="mathias.schult@dnvgl.com", password=pwd, access_token=token)
     return c
-   
+
+
 def get_odometer(c, car):
     odometer = None
     for v in c.vehicles:
@@ -138,7 +137,8 @@ def get_odometer(c, car):
             d = v.data_request("vehicle_state")
             odometer = int(d["odometer"] * 1.609)
     return odometer
-   
+
+
 def get_range(c, car):
     charge = None
     for v in c.vehicles:
@@ -146,7 +146,8 @@ def get_range(c, car):
             d = v.data_request("charge_state")
             charge = int(d["ideal_battery_range"] * 1.609)
     return charge
-   
+
+
 def get_amps(c, car):
     amps = None
     for v in c.vehicles:
@@ -154,22 +155,37 @@ def get_amps(c, car):
             d = v.data_request("charge_state")
             amps = int(d["charger_actual_current"])
     return amps
+
+
+def get_allChargeInfo(c, car):
+    for v in c.vehicles:
+        if v["display_name"] == car:
+                return v.data_request("charge_state")
+
+
+f = open("rainflow.txt")
+pwd = f.readline()
    
 c = establish_connection()
+
+stuff = get_allChargeInfo(c, "Elsa")
+for p in stuff:
+	print(p, stuff[p])
+
 print ('Range   {0:5d}km'.format(get_range(c, "Elsa")))
 print ('Current {0:5d}A'.format(get_amps(c, "Elsa")))
+#print ('Current {0:5d}A'.format(int(stuff["charger_actual_current"])))
 print ('Odo     {0:5d}km'.format(get_odometer(c, "Elsa")))
 
 import smtplib
 
 to = 'mathiasschult@yahoo.com'
 yahoo_user = 'mathiasschult@yahoo.com'
-yahoo_pwd = 'Herbert1'
 smtpserver = smtplib.SMTP("smtp.mail.yahoo.com",587)
 smtpserver.ehlo()
 smtpserver.starttls()
 smtpserver.ehlo() # extra characters to permit edit
-smtpserver.login(yahoo_user, yahoo_pwd)
+smtpserver.login(yahoo_user, pwd)
 header = 'To:' + to + '\n' + 'From: ' + yahoo_user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(c, "Elsa"))
 print (header)
 msg = header + '\n Tesla \n\n'
