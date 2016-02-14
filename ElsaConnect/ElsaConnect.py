@@ -182,12 +182,11 @@ print ('Range   {0:5d}km'.format(get_range(c, "Elsa")))
 print ('Current {0:5d}A'.format(get_amps(c, "Elsa")))
 # print ('Current {0:5d}A'.format(int(stuff["charger_actual_current"])))
 wattage = 0
-if stuff["charger_actual_current"] is not None:
-    if stuff["charger_voltage"] is not None:
-        wattage = int(stuff["charger_actual_current"]) * int(stuff["charger_voltage"])
+if stuff["charger_actual_current"] is not None and stuff["charger_voltage"] is not None:
+    wattage = int(stuff["charger_actual_current"]) * int(stuff["charger_voltage"])
 batWattage = 0
 if stuff["battery_current"] is not None:
-    batWattage = int(stuff["battery_current"]) * 400
+    batWattage = int(stuff["battery_current"] * 400)
 print ('WallW   {0:6d}W'.format(wattage))
 print ('BatW    {0:6d}W'.format(batWattage))
 print ('Odo     {0:5d}km'.format(get_odometer(c, "Elsa")))
