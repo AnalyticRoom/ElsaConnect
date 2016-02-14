@@ -154,16 +154,28 @@ def get_range(c, car):
     return charge
 
 
-def get_amps(c, car):
-    amps = None
-    for v in c.vehicles:
-        if v["display_name"] == car:
-            d = v.data_request("charge_state")
-            amps = int(d["charger_actual_current"])
+def get_wall_wattage(charge_state):
+    watt = 0
+    if charge_state["charger_actual_current"] is not None and charge_state["charger_voltage"] is not None:
+        watt = int(charge_state["charger_actual_current"]) * int(charge_state["charger_voltage"])
+    return watt
+
+
+def get_battery_wattage(charge_state):
+    watt = 0
+    if stuff["battery_current"] is not None:
+        watt = int(charge_state["battery_current"] * 400)
+    return watt
+
+
+def get_amps(charge_state):
+    amps = 0
+    if stuff["battery_current"] is not None:
+        amps = int(charge_state["charger_actual_current"])
     return amps
 
 
-def get_allChargeInfo(c, car):
+def get_all_charge_info(c, car):
     for v in c.vehicles:
         if v["display_name"] == car:
             return v.data_request("charge_state")
@@ -174,22 +186,16 @@ pwd = f.readline()
 
 c = establish_connection()
 
-stuff = get_allChargeInfo(c, "Elsa")
+stuff = get_all_charge_info(c, "Elsa")
 for p in stuff:
     print(p, stuff[p])
 
-print ('Range   {0:5d}km'.format(get_range(c, "Elsa")))
-print ('Current {0:5d}A'.format(get_amps(c, "Elsa")))
-# print ('Current {0:5d}A'.format(int(stuff["charger_actual_current"])))
-wattage = 0
-if stuff["charger_actual_current"] is not None and stuff["charger_voltage"] is not None:
-    wattage = int(stuff["charger_actual_current"]) * int(stuff["charger_voltage"])
-batWattage = 0
-if stuff["battery_current"] is not None:
-    batWattage = int(stuff["battery_current"] * 400)
-print ('WallW   {0:6d}W'.format(wattage))
-print ('BatW    {0:6d}W'.format(batWattage))
-print ('Odo     {0:5d}km'.format(get_odometer(c, "Elsa")))
+
+print ('Range   {0:6d}km'.format(get_range(c, "Elsa")))
+print ('Current {0:6d}A'.format(get_amps(stuff)))
+print ('WallW   {0:6d}W'.format(get_wall_wattage(stuff)))
+print ('BatW    {0:6d}W'.format(get_battery_wattage(stuff)))
+print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
 
 import smtplib
 
@@ -201,9 +207,10 @@ smtpserver.starttls()
 smtpserver.ehlo()  # extra characters to permit edit
 smtpserver.login(yahoo_user, pwd)
 header = 'To:' + to + '\n' + 'From: ' + yahoo_user + '\n' + 'Subject: Tesla {0:3d}'.format(
-    get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(c, "Elsa"))
+        get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(stuff))
 print (header)
-msg = header + '\n Tesla \n\n' + ' {0:4d}W'.format(wattage) + '\n {0:4d}W'.format(batWattage)
+msg = header + '\n Tesla \n\n' + ' {0:4d}W'.format(get_wall_wattage(stuff)) + '\n {0:4d}W'.format(
+        get_battery_wattage(stuff))
 smtpserver.sendmail(yahoo_user, to, msg)
 print ('done!')
 smtpserver.close()
