@@ -136,6 +136,14 @@ def establish_connection(token=None):
     return c
 
 
+def is_offline(c, car):
+    for v in c.vehicles:
+        if v["display_name"] == car:
+            if v["state"] == "offline":
+                return True
+    return False
+
+
 def get_odometer(c, car):
     odometer = None
     for v in c.vehicles:
@@ -186,6 +194,11 @@ pwd = f.readline()
 
 c = establish_connection()
 
+import sys
+if is_offline(c, "Elsa"): 
+    print ('sorry your car is offline')
+    sys.exit(1)
+    
 stuff = get_all_charge_info(c, "Elsa")
 for p in stuff:
     print(p, stuff[p])
@@ -197,20 +210,23 @@ print ('WallW   {0:6d}W'.format(get_wall_wattage(stuff)))
 print ('BatW    {0:6d}W'.format(get_battery_wattage(stuff)))
 print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
 
-import smtplib
-
-to = 'mathiasschult@yahoo.com'
-yahoo_user = 'mathiasschult@yahoo.com'
-smtpserver = smtplib.SMTP("smtp.mail.yahoo.com", 587)
-smtpserver.ehlo()
-smtpserver.starttls()
-smtpserver.ehlo()  # extra characters to permit edit
-smtpserver.login(yahoo_user, pwd)
-header = 'To:' + to + '\n' + 'From: ' + yahoo_user + '\n' + 'Subject: Tesla {0:3d}'.format(
-        get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(stuff))
-print (header)
-msg = header + '\n Tesla \n\n' + ' {0:4d}W'.format(get_wall_wattage(stuff)) + '\n {0:4d}W'.format(
-        get_battery_wattage(stuff))
-smtpserver.sendmail(yahoo_user, to, msg)
-print ('done!')
-smtpserver.close()
+def send_tesla_mail(c, pwd, stuff):
+    import smtplib
+    
+    to = 'mathiasschult@yahoo.com'
+    yahoo_user = 'mathiasschult@yahoo.com'
+    smtpserver = smtplib.SMTP("smtp.mail.yahoo.com", 587)
+    smtpserver.ehlo()
+    smtpserver.starttls()
+    smtpserver.ehlo()  # extra characters to permit edit
+    smtpserver.login(yahoo_user, pwd)
+    header = 'To:' + to + '\n' + 'From: ' + yahoo_user + '\n' + 'Subject: Tesla {0:3d}'.format(
+            get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(stuff))
+    print (header)
+    msg = header + '\n Tesla \n\n' + ' {0:4d}W'.format(get_wall_wattage(stuff)) + '\n {0:4d}W'.format(
+            get_battery_wattage(stuff))
+    smtpserver.sendmail(yahoo_user, to, msg)
+    print ('done!')
+    smtpserver.close()
+    
+send_tesla_mail(c, pwd, stuff)
