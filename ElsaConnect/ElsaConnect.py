@@ -188,6 +188,21 @@ def get_all_charge_info(c, car):
         if v["display_name"] == car:
             return v.data_request("charge_state")
 
+def send_tesla_mail(c, user, pwd, receiver, stuff):
+    import smtplib
+        
+    smtpserver = smtplib.SMTP("smtp.mail.yahoo.com", 587)
+    smtpserver.ehlo()
+    smtpserver.starttls()
+    smtpserver.ehlo()  # extra characters to permit edit
+    smtpserver.login(user, pwd)
+    header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(stuff))
+    print (header)
+    msg = header + '\n Tesla \n\n' + ' {0:4d}W'.format(get_wall_wattage(stuff)) + '\n {0:4d}W'.format(get_battery_wattage(stuff))
+    smtpserver.sendmail(user, receiver, msg)
+    print ('done!')
+    smtpserver.close()
+
 
 f = open("rainflow.txt")
 pwd = f.readline()
@@ -209,24 +224,5 @@ print ('Current {0:6d}A'.format(get_amps(stuff)))
 print ('WallW   {0:6d}W'.format(get_wall_wattage(stuff)))
 print ('BatW    {0:6d}W'.format(get_battery_wattage(stuff)))
 print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
-
-def send_tesla_mail(c, pwd, stuff):
-    import smtplib
     
-    to = 'mathiasschult@yahoo.com'
-    yahoo_user = 'mathiasschult@yahoo.com'
-    smtpserver = smtplib.SMTP("smtp.mail.yahoo.com", 587)
-    smtpserver.ehlo()
-    smtpserver.starttls()
-    smtpserver.ehlo()  # extra characters to permit edit
-    smtpserver.login(yahoo_user, pwd)
-    header = 'To:' + to + '\n' + 'From: ' + yahoo_user + '\n' + 'Subject: Tesla {0:3d}'.format(
-            get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(stuff))
-    print (header)
-    msg = header + '\n Tesla \n\n' + ' {0:4d}W'.format(get_wall_wattage(stuff)) + '\n {0:4d}W'.format(
-            get_battery_wattage(stuff))
-    smtpserver.sendmail(yahoo_user, to, msg)
-    print ('done!')
-    smtpserver.close()
-    
-send_tesla_mail(c, pwd, stuff)
+send_tesla_mail(c, 'mathiasschult@yahoo.com', pwd, 'mathiasschult@yahoo.com', stuff)
