@@ -198,7 +198,7 @@ def send_tesla_mail(c, user, pwd, receiver, stuff):
     smtpserver.login(user, pwd)
     header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(stuff))
     print (header)
-    msg = header + '\n Tesla \n\n' + ' {0:4d}W'.format(get_wall_wattage(stuff)) + '\n {0:4d}W'.format(get_battery_wattage(stuff))
+    msg = header + '\n Tesla \n\n' + '<InputW>{0:4d}</InputW>'.format(get_wall_wattage(stuff)) + '\n<BatteriW>{0:4d}</BatteriW>'.format(get_battery_wattage(stuff))
     smtpserver.sendmail(user, receiver, msg)
     print ('done!')
     smtpserver.close()
