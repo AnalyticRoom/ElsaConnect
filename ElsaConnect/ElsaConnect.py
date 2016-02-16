@@ -204,11 +204,6 @@ def send_tesla_mail(c, user, pwd, receiver, stuff):
     smtpserver.close()
 
 
-f = open("rainflow.txt")
-user = f.readline().rstrip('\n')
-pwd = f.readline().rstrip('\n')
-receiver = f.readline().rstrip('\n')
-
 c = establish_connection()
 
 import sys
@@ -226,6 +221,10 @@ print ('Current {0:6d}A'.format(get_amps(stuff)))
 print ('WallW   {0:6d}W'.format(get_wall_wattage(stuff)))
 print ('BatW    {0:6d}W'.format(get_battery_wattage(stuff)))
 print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
-    
+
+f = open("rainflow.txt")
+user = f.readline().rstrip('\n')
+pwd = f.readline().rstrip('\n')
+receiver = f.readline().rstrip('\n')    
 
 send_tesla_mail(c, user, pwd, receiver, stuff)
