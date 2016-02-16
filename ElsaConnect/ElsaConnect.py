@@ -205,7 +205,9 @@ def send_tesla_mail(c, user, pwd, receiver, stuff):
 
 
 f = open("rainflow.txt")
-pwd = f.readline()
+user = f.readline().rstrip('\n')
+pwd = f.readline().rstrip('\n')
+receiver = f.readline().rstrip('\n')
 
 c = establish_connection()
 
@@ -225,4 +227,5 @@ print ('WallW   {0:6d}W'.format(get_wall_wattage(stuff)))
 print ('BatW    {0:6d}W'.format(get_battery_wattage(stuff)))
 print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
     
-send_tesla_mail(c, 'mathiasschult@yahoo.com', pwd, 'mathiasschult@yahoo.com', stuff)
+
+send_tesla_mail(c, user, pwd, receiver, stuff)
