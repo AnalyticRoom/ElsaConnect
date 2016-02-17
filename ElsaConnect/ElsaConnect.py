@@ -183,6 +183,13 @@ def get_amps(charge_state):
     return amps
 
 
+def get_numberValueFrom(charge_state, parameterName):
+    result = 0
+    if stuff[parameterName] is not None:
+        result = int(charge_state[parameterName])
+    return result
+
+
 def get_all_charge_info(c, car):
     for v in c.vehicles:
         if v["display_name"] == car:
@@ -198,7 +205,7 @@ def send_tesla_mail(c, user, pwd, receiver, stuff):
     smtpserver.login(user, pwd)
     header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(stuff))
     print (header)
-    msg = header + '\n Tesla \n\n' + '<InputW>{0:4d}</InputW>'.format(get_wall_wattage(stuff)) + '\n<BatteriW>{0:4d}</BatteriW>'.format(get_battery_wattage(stuff))
+    msg = header + '\n Tesla \n\n' + '<InputW>{0}</InputW>'.format(get_wall_wattage(stuff)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(stuff)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(stuff, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(stuff, "usable_battery_level"))
     smtpserver.sendmail(user, receiver, msg)
     print ('done!')
     smtpserver.close()
