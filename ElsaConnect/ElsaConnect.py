@@ -210,27 +210,34 @@ def send_tesla_mail(c, user, pwd, receiver, stuff):
     print ('done!')
     smtpserver.close()
 
-f = open("rainflow.txt")
-user = f.readline().rstrip('\n')
-pwd = f.readline().rstrip('\n')
-receiver = f.readline().rstrip('\n')    
+try:
+    f = open("rainflow.txt")
+    user = f.readline().rstrip('\n')
+    pwd = f.readline().rstrip('\n')
+    receiver = f.readline().rstrip('\n')
+    try:
+        c = establish_connection()
 
-c = establish_connection()
+        import sys
+        if is_offline(c, "Elsa"):
+            print ('sorry your car is offline')
+            sys.exit(1)
 
-import sys
-if is_offline(c, "Elsa"): 
-    print ('sorry your car is offline')
-    sys.exit(1)
-    
-stuff = get_all_charge_info(c, "Elsa")
-for p in stuff:
-    print(p, stuff[p])
+        stuff = get_all_charge_info(c, "Elsa")
+        for p in stuff:
+            print(p, stuff[p])
 
+        print ('Range   {0:6d}km'.format(get_range(c, "Elsa")))
+        print ('Current {0:6d}A'.format(get_amps(stuff)))
+        print ('WallW   {0:6d}W'.format(get_wall_wattage(stuff)))
+        print ('BatW    {0:6d}W'.format(get_battery_wattage(stuff)))
+        print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
 
-print ('Range   {0:6d}km'.format(get_range(c, "Elsa")))
-print ('Current {0:6d}A'.format(get_amps(stuff)))
-print ('WallW   {0:6d}W'.format(get_wall_wattage(stuff)))
-print ('BatW    {0:6d}W'.format(get_battery_wattage(stuff)))
-print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
-
-send_tesla_mail(c, user, pwd, receiver, stuff)
+        try:
+            send_tesla_mail(c, user, pwd, receiver, stuff)
+        except:
+            print ("Could not send mail.")
+    except:
+        print ("Could not access car.")
+except:
+    print ("Could not read credentials file.")
