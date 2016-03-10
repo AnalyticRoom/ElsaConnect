@@ -171,22 +171,28 @@ def get_wall_wattage(charge_state):
 
 def get_battery_wattage(charge_state):
     watt = 0
-    if stuff["battery_current"] is not None:
+    if charge_state["battery_current"] is not None:
         watt = int(charge_state["battery_current"] * 400)
     return watt
 
 
 def get_amps(charge_state):
     amps = 0
-    if stuff["battery_current"] is not None:
+    if charge_state["battery_current"] is not None:
         amps = int(charge_state["charger_actual_current"])
     return amps
 
 
 def get_numberValueFrom(charge_state, parameterName):
     result = 0
-    if stuff[parameterName] is not None:
+    if charge_state[parameterName] is not None:
         result = int(charge_state[parameterName])
+    return result
+
+def get_ValueFrom(charge_state, parameterName):
+    result = 0
+    if charge_state[parameterName] is not None:
+        result = charge_state[parameterName]
     return result
 
 
@@ -195,7 +201,14 @@ def get_all_charge_info(c, car):
         if v["display_name"] == car:
             return v.data_request("charge_state")
 
-def send_tesla_mail(c, user, pwd, receiver, stuff):
+
+def get_all_drivestate_info(c, car):
+    for v in c.vehicles:
+        if v["display_name"] == car:
+            return v.data_request("drive_state")
+
+
+def send_tesla_mail(c, user, pwd, receiver, charge, drive):
     import smtplib
         
     smtpserver = smtplib.SMTP("smtp.mail.yahoo.com", 587)
@@ -203,9 +216,9 @@ def send_tesla_mail(c, user, pwd, receiver, stuff):
     smtpserver.starttls()
     smtpserver.ehlo()  # extra characters to permit edit
     smtpserver.login(user, pwd)
-    header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(stuff))
+    header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(charge))
     print (header)
-    msg = header + '\n Tesla \n\n' + '<InputW>{0}</InputW>'.format(get_wall_wattage(stuff)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(stuff)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(stuff, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(stuff, "usable_battery_level"))
+    msg = header + '\n Tesla \n\n' + '<InputW>{0}</InputW>'.format(get_wall_wattage(charge)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(charge)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(charge, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(charge, "usable_battery_level")) + '\n<Latitude>{0}</Latitude>'.format(get_ValueFrom(drive, "latitude")) + '\n<Longitude>{0}</Longitude>'.format(get_ValueFrom(drive, "longitude"))
     smtpserver.sendmail(user, receiver, msg)
     print ('done!')
     smtpserver.close()
@@ -222,15 +235,19 @@ if is_offline(c, "Elsa"):
     print ('sorry your car is offline')
     sys.exit(1)
     
-stuff = get_all_charge_info(c, "Elsa")
-for p in stuff:
-    print(p, stuff[p])
+chargestateInfo = get_all_charge_info(c, "Elsa")
+for p in chargestateInfo:
+    print(p, chargestateInfo[p])
+   
+drivestateInfo = get_all_drivestate_info(c, "Elsa")
+for p in drivestateInfo:
+    print(p, drivestateInfo[p])
 
 
 print ('Range   {0:6d}km'.format(get_range(c, "Elsa")))
-print ('Current {0:6d}A'.format(get_amps(stuff)))
-print ('WallW   {0:6d}W'.format(get_wall_wattage(stuff)))
-print ('BatW    {0:6d}W'.format(get_battery_wattage(stuff)))
+print ('Current {0:6d}A'.format(get_amps(chargestateInfo)))
+print ('WallW   {0:6d}W'.format(get_wall_wattage(chargestateInfo)))
+print ('BatW    {0:6d}W'.format(get_battery_wattage(chargestateInfo)))
 print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
 
-send_tesla_mail(c, user, pwd, receiver, stuff)
+send_tesla_mail(c, user, pwd, receiver, chargestateInfo, drivestateInfo)
