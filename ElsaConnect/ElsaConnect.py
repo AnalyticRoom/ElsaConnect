@@ -149,7 +149,7 @@ def get_odometer(c, car):
     for v in c.vehicles:
         if v["display_name"] == car:
             d = v.data_request("vehicle_state")
-            odometer = int(d["odometer"] * 1.609)
+            odometer = int(round(d["odometer"] * 1.609))
     return odometer
 
 
@@ -158,7 +158,7 @@ def get_range(c, car):
     for v in c.vehicles:
         if v["display_name"] == car:
             d = v.data_request("charge_state")
-            charge = int(d["ideal_battery_range"] * 1.609)
+            charge =  int(round(d["ideal_battery_range"] * 1.609))
     return charge
 
 
