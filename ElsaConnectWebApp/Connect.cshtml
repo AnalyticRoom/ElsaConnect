@@ -1,0 +1,47 @@
+﻿@{
+    var result = "";
+    if (IsPost)
+    {
+        var femFileName = Request["FemFileName"];
+
+        var userData = femFileName + Environment.NewLine;
+
+        var dataFile = Server.MapPath("~/App_Data/data.txt");
+        File.WriteAllText(@dataFile, userData);
+        result = "Information saved.";
+        ElsaConnect
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Convert Sesam FEM file to Bladed Project file.</title>
+</head>
+<body>
+    <form id="form1" method="post">
+        <div>
+            <table>
+                <tr>
+                    <td>FEM File:</td>
+                    <td><input id="FemFileName" name="FemFileName" type="text" /></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input type="submit" value="Submit" /></td>
+                </tr>
+            </table>
+        </div>
+        <div>
+            @if (result != "")
+            {
+                <p>Result: @result</p>
+            }
+        </div>
+        <asp:FileUpload id="FileUploadControl" />
+        <asp:Button id="UploadButton" text="Upload" onclick="UploadButton_Click" />
+        <br /><br />
+        <asp:Label id="StatusLabel" text="Upload status: " />
+    </form>
+
+</body>
+</html>

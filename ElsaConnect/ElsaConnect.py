@@ -195,6 +195,11 @@ def get_ValueFrom(listOFStates, parameterName):
         result = listOFStates[parameterName]
     return result
 
+def get_all_vehicle_info(c, car):
+    for v in c.vehicles:
+        if v["display_name"] == car:
+            return v.data_request("vehicle_state")
+
 def get_all_charge_info(c, car):
     for v in c.vehicles:
         if v["display_name"] == car:
@@ -242,6 +247,10 @@ except:
 if is_offline(c, "Elsa"):
     print ('sorry your car is offline')
     sys.exit(1)
+
+vehiclestate = get_all_vehicle_info(c, "Elsa")
+for p in vehiclestate:
+    print(p, vehiclestate[p])
 
 chargestate = get_all_charge_info(c, "Elsa")
 for p in chargestate:
