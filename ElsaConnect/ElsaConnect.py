@@ -212,7 +212,9 @@ def get_all_drivestate_info(c, car):
 
 def send_tesla_mail(c, user, pwd, receiver, charge, drive, vehiclestate):
     import smtplib
-        
+  
+    print(user)
+    print(receiver)
     smtpserver = smtplib.SMTP("smtp.mail.yahoo.com", 587)
     smtpserver.ehlo()
     smtpserver.starttls()
@@ -233,6 +235,7 @@ try:
     f = open("rainflow.txt")
     user = f.readline().rstrip('\n')
     pwd = f.readline().rstrip('\n')
+    mailsender = f.readline().rstrip('\n')
     receiver = f.readline().rstrip('\n')
 except:
     print ("Could not read credentials file.")
@@ -267,7 +270,7 @@ print ('BatW    {0:6d}W'.format(get_battery_wattage(chargestate)))
 print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
 
 try:
-    send_tesla_mail(c, user, pwd, receiver, chargestate, drivestate, vehiclestate)
+    send_tesla_mail(c, mailsender, pwd, receiver, chargestate, drivestate, vehiclestate)
 except:
     print ("Could not send mail.")
     sys.exit(1)
