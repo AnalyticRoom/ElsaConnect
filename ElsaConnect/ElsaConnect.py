@@ -156,7 +156,7 @@ def get_speed(c, car):
     speed = None
     for v in c.vehicles:
         if v["display_name"] == car:
-            d = v.data_request("drive_state")            
+            d = v.data_request("drive_state")
             if d["speed"] is None:
                 return 0;
             odometer = int(round(d["speed"] * 1.609))
@@ -220,22 +220,25 @@ def get_all_drivestate_info(c, car):
         if v["display_name"] == car:
             return v.data_request("drive_state")
 
-def send_tesla_mail(c, user, pwd, receiver, charge, drive, vehiclestate):
+def send_tesla_mail(c, user, mailpwd, receiver, charge, drive, vehiclestate):
     import smtplib
-  
+
     print(user)
     print(receiver)
     smtpserver = smtplib.SMTP("smtp.mail.yahoo.com", 587)
     smtpserver.ehlo()
     smtpserver.starttls()
     smtpserver.ehlo()  # extra characters to permit edit
-    smtpserver.login(user, pwd)
+    smtpserver.login(user, mailpwd)
     header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(charge))
     print (header)
-    body = '\n\n' + '<InputW>{0}</InputW>'.format(get_wall_wattage(charge)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(charge)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(charge, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(charge, "usable_battery_level")) + '\n<BatteryHeater>{0}</BatteryHeater>'.format(get_ValueFrom(charge, "battery_heater_on")) + '\n<Latitude>{0}</Latitude>'.format(get_ValueFrom(drive, "latitude")) + '\n<Longitude>{0}</Longitude>'.format(get_ValueFrom(drive, "longitude")) + '\n<WallCurrent>{0}</WallCurrent>'.format(get_ValueFrom(charge, "charger_pilot_current")) + '\n<Odometer>{0}</Odometer>'.format(int(round(get_ValueFrom(vehiclestate, "odometer") * 1.609))) + '\n<Speed>{0}</Speed>'.format(int(round(get_ValueFrom(vehiclestate, "speed") * 1.609)))
-    print(body)
-    msg = header + body
-    smtpserver.sendmail(user, receiver, msg)
+    try:
+        body = '\n\n' + '<InputW>{0}</InputW>'.format(get_wall_wattage(charge)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(charge)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(charge, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(charge, "usable_battery_level")) + '\n<BatteryHeater>{0}</BatteryHeater>'.format(get_ValueFrom(charge, "battery_heater_on")) + '\n<Latitude>{0}</Latitude>'.format(get_ValueFrom(drive, "latitude")) + '\n<Longitude>{0}</Longitude>'.format(get_ValueFrom(drive, "longitude")) + '\n<WallCurrent>{0}</WallCurrent>'.format(get_ValueFrom(charge, "charger_pilot_current")) + '\n<Odometer>{0}</Odometer>'.format(int(round(get_ValueFrom(vehiclestate, "odometer") * 1.609))) + '\n<Speed>{0}</Speed>'.format(int(round(get_ValueFrom(drivestate, "speed") * 1.609)))
+        print(body)
+        msg = header + body
+        smtpserver.sendmail(user, receiver, msg)
+    except Exception as e:
+        print (e)
     print ('done!')
     smtpserver.close()
 
@@ -246,17 +249,18 @@ try:
     user = f.readline().rstrip('\n')
     pwd = f.readline().rstrip('\n')
     mailsender = f.readline().rstrip('\n')
+    mailpwd = f.readline().rstrip('\n')
     receiver = f.readline().rstrip('\n')
 except:
     print ("Could not read credentials file.")
     sys.exit(1)
-    
+
 try:
     c = establish_connection()
 except:
     print ("Could not access car.")
     sys.exit(1)
-        
+
 if is_offline(c, "Elsa"):
     print ('sorry your car is offline')
     sys.exit(1)
@@ -278,11 +282,10 @@ print ('Current {0:6d}A'.format(get_amps(chargestate)))
 print ('WallW   {0:6d}W'.format(get_wall_wattage(chargestate)))
 print ('BatW    {0:6d}W'.format(get_battery_wattage(chargestate)))
 print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
-print ('Speed   {0:6d}km'.format(get_speed(c, "Elsa")))
-
+print ('Speed   {0:6d}km/h'.format(get_speed(c, "Elsa")))
+print ('Speed   {0:6d}km/h'.format(int(round(get_ValueFrom(drivestate, "speed") * 1.609))))
 try:
-    send_tesla_mail(c, mailsender, pwd, receiver, chargestate, drivestate, vehiclestate)
+    send_tesla_mail(c, mailsender, mailpwd, receiver, chargestate, drivestate, vehiclestate)
 except:
     print ("Could not send mail.")
     sys.exit(1)
-
