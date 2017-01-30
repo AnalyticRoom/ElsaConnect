@@ -233,7 +233,7 @@ def send_tesla_mail(c, user, mailpwd, receiver, charge, drive, vehiclestate):
     header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(charge))
     print (header)
     try:
-        body = '\n\n' + '<InputW>{0}</InputW>'.format(get_wall_wattage(charge)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(charge)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(charge, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(charge, "usable_battery_level")) + '\n<BatteryHeater>{0}</BatteryHeater>'.format(get_ValueFrom(charge, "battery_heater_on")) + '\n<Latitude>{0}</Latitude>'.format(get_ValueFrom(drive, "latitude")) + '\n<Longitude>{0}</Longitude>'.format(get_ValueFrom(drive, "longitude")) + '\n<WallCurrent>{0}</WallCurrent>'.format(get_ValueFrom(charge, "charger_pilot_current")) + '\n<Odometer>{0}</Odometer>'.format(int(round(get_ValueFrom(vehiclestate, "odometer") * 1.609))) + '\n<Speed>{0}</Speed>'.format(int(round(get_ValueFrom(drivestate, "speed") * 1.609)))
+        body = '\n\n' + '<InputW>{0}</InputW>'.format(get_wall_wattage(charge)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(charge)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(charge, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(charge, "usable_battery_level")) + '\n<BatteryHeater>{0}</BatteryHeater>'.format(get_ValueFrom(charge, "battery_heater_on")) + '\n<Latitude>{0}</Latitude>'.format(get_ValueFrom(drive, "latitude")) + '\n<Longitude>{0}</Longitude>'.format(get_ValueFrom(drive, "longitude")) + '\n<WallCurrent>{0}</WallCurrent>'.format(get_ValueFrom(charge, "charger_pilot_current")) + '\n<Odometer>{0}</Odometer>'.format(int(round(get_ValueFrom(vehiclestate, "odometer") * 1.609))) + '\n<Speed>{0}</Speed>'.format(int(round((get_ValueFrom(drivestate, "speed")) * 1.609)))
         print(body)
         msg = header + body
         smtpserver.sendmail(user, receiver, msg)
@@ -282,7 +282,7 @@ print ('Current {0:6d}A'.format(get_amps(chargestate)))
 print ('WallW   {0:6d}W'.format(get_wall_wattage(chargestate)))
 print ('BatW    {0:6d}W'.format(get_battery_wattage(chargestate)))
 print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
-print ('Speed   {0:6d}km/h'.format(get_speed(c, "Elsa")))
+#print ('Speed   {0:6d}km/h'.format(get_speed(c, "Elsa")))
 print ('Speed   {0:6d}km/h'.format(int(round(get_ValueFrom(drivestate, "speed") * 1.609))))
 try:
     send_tesla_mail(c, mailsender, mailpwd, receiver, chargestate, drivestate, vehiclestate)
