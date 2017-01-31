@@ -281,7 +281,7 @@ print ('Range   {0:6d}km'.format(get_range(c, "Elsa")))
 print ('Current {0:6d}A'.format(get_amps(chargestate)))
 print ('WallW   {0:6d}W'.format(get_wall_wattage(chargestate)))
 print ('BatW    {0:6d}W'.format(get_battery_wattage(chargestate)))
-print ('Odo     {0:6d}km'.format(get_odometer(c, "Elsa")))
+print ('Odo     {0:6d}km'.format(int(round(get_ValueFrom(vehiclestate, "odometer") * 1.609))))
 #print ('Speed   {0:6d}km/h'.format(get_speed(c, "Elsa")))
 print ('Speed   {0:6d}km/h'.format(int(round(get_ValueFrom(drivestate, "speed") * 1.609))))
 try:
