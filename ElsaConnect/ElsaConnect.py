@@ -181,14 +181,14 @@ def get_wall_wattage(charge_state):
 
 def get_battery_wattage(charge_state):
     watt = 0
-    if charge_state["battery_current"] is not None:
-        watt = int(charge_state["battery_current"] * 400)
+    if charge_state["charger_actual_current"] is not None:
+        watt = int(charge_state["charger_actual_current"] * 400)
     return watt
 
 
 def get_amps(charge_state):
     amps = 0
-    if charge_state["battery_current"] is not None:
+    if charge_state["charger_actual_current"] is not None:
         amps = int(charge_state["charger_actual_current"])
     return amps
 
