@@ -258,8 +258,11 @@ except:
 try:
     c = establish_connection()
 except:
-    print ("Could not access car.")
-    sys.exit(1)
+    try:
+        c = establish_connection()
+    except:
+        print ("Could not access car.")
+        sys.exit(1)
 
 if is_offline(c, "Elsa"):
     print ('sorry your car is offline')
