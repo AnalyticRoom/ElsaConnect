@@ -1,3 +1,12 @@
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+import json
+import io
+import boto3
+import datetime
+
+mile = 1.609344
+
 #!/usr/bin/env python
 # encoding: utf-8
 
@@ -13,16 +22,6 @@ v.wake_up()
 v.data_request('charge_state')
 v.command('charge_start')
 """
-
-try:  # Python 3
-    from urllib.parse import urlencode
-    from urllib.request import Request, urlopen
-except:  # Python 2
-    from urllib import urlencode
-    from urllib2 import Request, urlopen
-import json
-
-
 class Connection(object):
     """Connection to Tesla Motors API"""
 
@@ -124,17 +123,12 @@ class Vehicle(dict):
         """Utility command to post data to API"""
         return self.connection.post('vehicles/%i/%s' % (self['id'], command))
 
-
 import os
 
-
-# import teslajson
-
-
-def establish_connection(token=None):
-    c = Connection(email="mathias.schult@dnvgl.com", password=pwd, access_token=token)
+def establish_connection(user, pwd, token=None):
+    print('Trying to access car')
+    c = Connection(email=user, password=pwd, access_token=token)
     return c
-
 
 def is_offline(c, car):
     for v in c.vehicles:
@@ -199,97 +193,122 @@ def get_numberValueFrom(listOfStates, parameterName):
         result = int(listOfStates[parameterName])
     return result
 
+
 def get_ValueFrom(listOFStates, parameterName):
     result = 0
     if listOFStates[parameterName] is not None:
         result = listOFStates[parameterName]
     return result
 
-def get_all_vehicle_info(c, car):
-    for v in c.vehicles:
-        if v["display_name"] == car:
-            return v.data_request("vehicle_state")
 
-def get_all_charge_info(c, car):
-    for v in c.vehicles:
-        if v["display_name"] == car:
-            return v.data_request("charge_state")
+def lambda_handler(event, context):    
+    import sys
 
-def get_all_drivestate_info(c, car):
-    for v in c.vehicles:
-        if v["display_name"] == car:
-            return v.data_request("drive_state")
+    def get_all_drivestate_info(c, car):
+        for v in c.vehicles:
+            if v["display_name"] == car:
+                return v.data_request("drive_state")
+                
+    def get_all_vehicle_info(c, car):
+        for v in c.vehicles:
+            if v["display_name"] == car:
+                return v.data_request("vehicle_state")
 
-def send_tesla_mail(c, user, mailpwd, receiver, charge, drive, vehiclestate):
-    import smtplib
+    def get_all_charge_info(c, car):
+        for v in c.vehicles:
+            if v["display_name"] == car:
+                return v.data_request("charge_state")
+    
+    def get_car_data(c, user, mailpwd, receiver, charge, drive, vehiclestate):
+        #header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Tello")) + ' {0:3d}'.format(get_amps(charge))
+        #print (header)
+        try:
+            body = '\n\n' + '<KmRangeLeft>{0}</KmRangeLeft>'.format(get_range(c, "Tello")) + '\n<CurrentIn>{0}</CurrentIn>'.format(get_amps(charge)) + '\n<InputW>{0}</InputW>'.format(get_wall_wattage(charge)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(charge)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(charge, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(charge, "usable_battery_level")) + '\n<BatteryHeater>{0}</BatteryHeater>'.format(get_ValueFrom(charge, "battery_heater_on")) + '\n<Latitude>{0}</Latitude>'.format(get_ValueFrom(drive, "latitude")) + '\n<Longitude>{0}</Longitude>'.format(get_ValueFrom(drive, "longitude")) + '\n<WallCurrent>{0}</WallCurrent>'.format(get_ValueFrom(charge, "charger_pilot_current")) + '\n<Odometer>{0}</Odometer>'.format(int(round(get_ValueFrom(vehiclestate, "odometer") * mile))) + '\n<Speed>{0}</Speed>'.format(int(round((get_ValueFrom(drivestate, "speed")) * 1.609344)))
+            print(body)
+        except Exception as e:
+            print (e)
+        print ('done!')
+        return body
 
-    print(user)
-    print(receiver)
-    smtpserver = smtplib.SMTP("smtp.mail.yahoo.com", 587)
-    smtpserver.ehlo()
-    smtpserver.starttls()
-    smtpserver.ehlo()  # extra characters to permit edit
-    smtpserver.login(user, mailpwd)
-    header = 'To:' + receiver + '\n' + 'From: ' + user + '\n' + 'Subject: Tesla {0:3d}'.format(get_range(c, "Elsa")) + ' {0:3d}'.format(get_amps(charge))
-    print (header)
+
+
+
+
     try:
-        body = '\n\n' + '<InputW>{0}</InputW>'.format(get_wall_wattage(charge)) + '\n<BatteryW>{0}</BatteryW>'.format(get_battery_wattage(charge)) + '\n<BatteryLevel>{0}</BatteryLevel>'.format(get_numberValueFrom(charge, "battery_level")) + '\n<UsableBatteryLevel>{0}</UsableBatteryLevel>'.format(get_numberValueFrom(charge, "usable_battery_level")) + '\n<BatteryHeater>{0}</BatteryHeater>'.format(get_ValueFrom(charge, "battery_heater_on")) + '\n<Latitude>{0}</Latitude>'.format(get_ValueFrom(drive, "latitude")) + '\n<Longitude>{0}</Longitude>'.format(get_ValueFrom(drive, "longitude")) + '\n<WallCurrent>{0}</WallCurrent>'.format(get_ValueFrom(charge, "charger_pilot_current")) + '\n<Odometer>{0}</Odometer>'.format(int(round(get_ValueFrom(vehiclestate, "odometer") * mile))) + '\n<Speed>{0}</Speed>'.format(int(round((get_ValueFrom(drivestate, "speed")) * 1.609344)))
-        print(body)
-        msg = header + body
-        smtpserver.sendmail(user, receiver, msg)
-    except Exception as e:
-        print (e)
-    print ('done!')
-    smtpserver.close()
-
-
-import sys
-mile = 1.609344
-try:
-    f = open("rainflow.txt")
-    user = f.readline().rstrip('\n')
-    pwd = f.readline().rstrip('\n')
-    mailsender = f.readline().rstrip('\n')
-    mailpwd = f.readline().rstrip('\n')
-    receiver = f.readline().rstrip('\n')
-except:
-    print ("Could not read credentials file.")
-    sys.exit(1)
-
-try:
-    c = establish_connection()
-except:
-    try:
-        c = establish_connection()
+        f = open("rainflow.txt")
+        user = f.readline().rstrip('\n')
+        pwd = f.readline().rstrip('\n')
+        mailsender = f.readline().rstrip('\n')
+        mailpwd = f.readline().rstrip('\n')
+        receiver = f.readline().rstrip('\n')
     except:
-        print ("Could not access car.")
+        print ("Could not read credentials file.")
         sys.exit(1)
+    
+    try:
+        c = establish_connection(user, pwd)
+    except:
+        try:
+            c = establish_connection(user, pwd)
+        except:
+            print ("Could not access car.")
+            sys.exit(1)
+    
+    if is_offline(c, "Tello"):
+        print ('sorry your car is offline')
+        sys.exit(1)
+    
+    print('Reading drive state')
+    drivestate = get_all_drivestate_info(c, "Tello")
+    for p in drivestate:
+        print(p, drivestate[p])
+    
+    print('Reading charge state')
+    chargestate = get_all_charge_info(c, "Tello")
+    for p in chargestate:
+        print(p, chargestate[p])
+    
+    print('Reading vehicle state')
+    vehiclestate = get_all_vehicle_info(c, "Tello")
+    for p in vehiclestate:
+        print(p, vehiclestate[p])
+    
+    rangeForResponse = get_range(c, "Tello")
+    amps = get_amps(chargestate)
 
-if is_offline(c, "Elsa"):
-    print ('sorry your car is offline')
-    sys.exit(1)
-
-vehiclestate = get_all_vehicle_info(c, "Elsa")
-for p in vehiclestate:
-    print(p, vehiclestate[p])
-
-chargestate = get_all_charge_info(c, "Elsa")
-for p in chargestate:
-    print(p, chargestate[p])
-
-drivestate = get_all_drivestate_info(c, "Elsa")
-for p in drivestate:
-    print(p, drivestate[p])
-
-print ('Range   {0:6d}km'.format(get_range(c, "Elsa")))
-print ('Current {0:6d}A'.format(get_amps(chargestate)))
-print ('WallW   {0:6d}W'.format(get_wall_wattage(chargestate)))
-print ('BatW    {0:6d}W'.format(get_battery_wattage(chargestate)))
-print ('Odo     {0:6d}km'.format(int(round(get_ValueFrom(vehiclestate, "odometer") * 1.609344))))
-#print ('Speed   {0:6d}km/h'.format(get_speed(c, "Elsa")))
-print ('Speed   {0:6d}km/h'.format(int(round(get_ValueFrom(drivestate, "speed") * 1.609344))))
-try:
-    send_tesla_mail(c, mailsender, mailpwd, receiver, chargestate, drivestate, vehiclestate)
-except:
-    print ("Could not send mail.")
-    sys.exit(1)
+    try:
+        print('Getting data from car:')
+        mailBody = get_car_data(c, mailsender, mailpwd, receiver, chargestate, drivestate, vehiclestate)
+    except:
+        print ("Could not get car data.")
+        sys.exit(1)
+    try:
+        subject = 'Tesla {0:3d}'.format(rangeForResponse)
+        print(subject)        
+        try:
+            print('Connect to S3')
+            s3 = boto3.resource('s3')
+            print('Connected')
+            #s3://mathiasschulttesla/tesla.csv
+            s3.Bucket('mathiasschulttesla').download_file('tesla.csv', '/tmp/tesla.csv')
+            print('File downloaded')
+            dt = datetime.datetime.now()
+            linetoappend = '{0:3d},{1:4d}-{2:02d}-{3:02d} {4:02d}:{5:02d},1,{6},{7:3.3f},{8:3.3f},{9},{10}'.format(rangeForResponse, dt.year, dt.month, dt.day, dt.hour, dt.minute, amps, get_ValueFrom(drivestate, "longitude"), get_ValueFrom(drivestate, "latitude"),int(round((get_ValueFrom(drivestate, "speed")) * 1.609344)), int(round(get_ValueFrom(vehiclestate, "odometer") * mile)))
+            print('Append this: ' + linetoappend)
+            with open('/tmp/tesla.csv', "a") as teslafile:
+                teslafile.write(linetoappend + os.linesep)
+            print('/tmp/tesla.csv')
+            s3.Bucket('mathiasschulttesla').upload_file('/tmp/tesla.csv', 'tesla.csv')
+        except Exception as e:
+            print(e)
+    except:
+        print ("Could not add to bucket.")
+        sys.exit(1)
+    #response = open(os.environ['res'], 'w')
+    #response.write(mailBody)
+    #response.close()
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps(mailBody)
+    }
